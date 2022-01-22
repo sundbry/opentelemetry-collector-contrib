@@ -25,8 +25,7 @@ import (
 	"go.opentelemetry.io/collector/model/pdata"
 )
 
-// Test_validateMetrics checks validateMetrics return true if a type and temporality combination is valid, false
-// otherwise.
+// Test_validateMetrics checks validateMetrics returns an error if the input is invalid.
 func Test_validateMetrics(t *testing.T) {
 
 	// define a single test
@@ -62,8 +61,8 @@ func Test_validateMetrics(t *testing.T) {
 	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := validateMetrics(tt.metric)
-			assert.Equal(t, tt.want, got)
+			err := validateMetrics(tt.metric)
+			assert.Equal(t, tt.want, err == nil)
 		})
 	}
 }

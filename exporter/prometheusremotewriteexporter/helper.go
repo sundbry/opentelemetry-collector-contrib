@@ -63,18 +63,34 @@ func (a ByLabelName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 // validateMetrics returns a bool representing whether the metric has a valid type and temporality combination and a
 // matching metric type and field
-func validateMetrics(metric pdata.Metric) bool {
+func validateMetrics(metric pdata.Metric) error {
 	switch metric.DataType() {
 	case pdata.MetricDataTypeGauge:
-		return metric.Gauge().DataPoints().Len() != 0
+		if metric.Gauge().DataPoints().Len() == 0 {
+			return errors.New("No data points for gauge")
+		}
 	case pdata.MetricDataTypeSum:
-		return metric.Sum().DataPoints().Len() != 0 && metric.Sum().AggregationTemporality() == pdata.MetricAggregationTemporalityCumulative
+		if metric.Sum().DataPoints().Len() == 0 {
+			return errors.New("No data points for sum")
+		}
+		if metric.Sum().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+			return errors.New("Sum metric aggregation temporality is not cumulative")
+		}
 	case pdata.MetricDataTypeHistogram:
-		return metric.Histogram().DataPoints().Len() != 0 && metric.Histogram().AggregationTemporality() == pdata.MetricAggregationTemporalityCumulative
+		if metric.Histogram().DataPoints().Len() == 0 {
+			return errors.New("No datapoints for histogram")
+		}
+		if metric.Histogram().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
+			return errors.New("Histogram metric aggregation temporality is not cumulative")
+		}
 	case pdata.MetricDataTypeSummary:
-		return metric.Summary().DataPoints().Len() != 0
+		if metric.Summary().DataPoints().Len() == 0 {
+			return errors.New("No datapoints for metric summary")
+		}
+	default:
+		return errors.New("unsupported metric type")
 	}
-	return false
+	return nil
 }
 
 // addSample finds a TimeSeries in tsMap that corresponds to the label set labels, and add sample to the TimeSeries; it

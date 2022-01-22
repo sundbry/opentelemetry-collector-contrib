@@ -123,9 +123,9 @@ func (prwe *prwExporter) PushMetrics(ctx context.Context, md pdata.Metrics) erro
 					metric := metricSlice.At(k)
 
 					// check for valid type and temporality combination and for matching data field and type
-					if ok := validateMetrics(metric); !ok {
+					if err := validateMetrics(metric); err != nil {
 						dropped++
-						errs = multierr.Append(errs, consumererror.NewPermanent(errors.New("invalid temporality and type combination")))
+						errs = multierr.Append(errs, consumererror.NewPermanent(err))
 						continue
 					}
 
@@ -162,8 +162,7 @@ func (prwe *prwExporter) PushMetrics(ctx context.Context, md pdata.Metrics) erro
 							addSingleSummaryDataPoint(dataPoints.At(x), resource, metric, prwe.namespace, tsMap, prwe.externalLabels)
 						}
 					default:
-						dropped++
-						errs = multierr.Append(errs, consumererror.NewPermanent(errors.New("unsupported metric type")))
+						panic("unreachable code -- guarded by validateMetrics")
 					}
 				}
 			}
