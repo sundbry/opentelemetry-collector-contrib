@@ -25,44 +25,55 @@ import (
 	"go.opentelemetry.io/collector/model/pdata"
 )
 
-// Test_validateMetrics checks validateMetrics returns an error if the input is invalid.
-func Test_validateMetrics(t *testing.T) {
+func Test_validateMetric(t *testing.T) {
 
 	// define a single test
 	type combTest struct {
 		name   string
 		metric pdata.Metric
-		want   bool
+		expectedStatus   ValidationStatus
 	}
 
 	tests := []combTest{}
 
-	// append true cases
-	for k, validMetric := range validMetrics1 {
+	// Ok
+	for k, metric := range validMetrics1 {
 		name := "valid_" + k
 
 		tests = append(tests, combTest{
 			name,
-			validMetric,
-			true,
+			metric,
+			Ok,
 		})
 	}
 
-	for k, invalidMetric := range invalidMetrics {
+  // Skip
+	for k, metric := range emptyMetrics {
+		name := "empty_" + k
+
+		tests = append(tests, combTest{
+			name,
+			metric,
+			Skip,
+		})
+	}
+
+  // Drop
+	for k, metric := range invalidMetrics {
 		name := "invalid_" + k
 
 		tests = append(tests, combTest{
 			name,
-			invalidMetric,
-			false,
+			metric,
+			Drop,
 		})
 	}
 
 	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := validateMetrics(tt.metric)
-			assert.Equal(t, tt.want, err == nil)
+      validationStatus, _ := validateMetric(tt.metric)
+			assert.Equal(t, tt.expectedStatus, validationStatus)
 		})
 	}
 }

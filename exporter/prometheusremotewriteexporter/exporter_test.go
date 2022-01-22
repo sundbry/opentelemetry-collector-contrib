@@ -378,14 +378,17 @@ func Test_PushMetrics(t *testing.T) {
 	// len(BucketCount) > len(ExplicitBounds)
 	unmatchedBoundBucketHistBatch := getMetricsFromMetricList(validMetrics2[unmatchedBoundBucketHist])
 
-	// fail cases
-	emptyDoubleGaugeBatch := getMetricsFromMetricList(invalidMetrics[emptyGauge])
+	// skip cases
+	emptyDoubleGaugeBatch := getMetricsFromMetricList(emptyMetrics[emptyGauge])
 
-	emptyCumulativeSumBatch := getMetricsFromMetricList(invalidMetrics[emptyCumulativeSum])
+	emptyCumulativeSumBatch := getMetricsFromMetricList(emptyMetrics[emptyCumulativeSum])
 
-	emptyCumulativeHistogramBatch := getMetricsFromMetricList(invalidMetrics[emptyCumulativeHistogram])
+	emptyCumulativeHistogramBatch := getMetricsFromMetricList(emptyMetrics[emptyCumulativeHistogram])
 
-	emptySummaryBatch := getMetricsFromMetricList(invalidMetrics[emptySummary])
+	emptySummaryBatch := getMetricsFromMetricList(emptyMetrics[emptySummary])
+
+  // fail cases
+  // invalidBatch := getMetricsFromMetricList(invalidMetrics["typeNone"])
 
 	// staleNaN cases
 	staleNaNHistogramBatch := getMetricsFromMetricList(staleNaNMetrics[staleNaNHistogram])

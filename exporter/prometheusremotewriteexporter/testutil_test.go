@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/testdata"
 	"github.com/prometheus/prometheus/prompb"
 	"go.opentelemetry.io/collector/model/pdata"
 )
@@ -149,14 +150,17 @@ var (
 	emptyCumulativeHistogram = "emptyCumulativeHistogram"
 
 	// different metrics that will not pass validate metrics and will cause the exporter to return an error
-	invalidMetrics = map[string]pdata.Metric{
-		empty:                    pdata.NewMetric(),
+	emptyMetrics = map[string]pdata.Metric{
 		emptyGauge:               getEmptyGaugeMetric(emptyGauge),
 		emptySum:                 getEmptySumMetric(emptySum),
 		emptyHistogram:           getEmptyHistogramMetric(emptyHistogram),
 		emptySummary:             getEmptySummaryMetric(emptySummary),
 		emptyCumulativeSum:       getEmptyCumulativeSumMetric(emptyCumulativeSum),
 		emptyCumulativeHistogram: getEmptyCumulativeHistogramMetric(emptyCumulativeHistogram),
+	}
+	invalidMetrics = map[string]pdata.Metric{
+		"empty":    pdata.NewMetric(),
+		"typeNone": testdata.GenerateMetricTypeNone(),
 	}
 	staleNaNIntGauge    = "staleNaNIntGauge"
 	staleNaNDoubleGauge = "staleNaNDoubleGauge"

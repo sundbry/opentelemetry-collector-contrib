@@ -122,10 +122,16 @@ func (prwe *prwExporter) PushMetrics(ctx context.Context, md pdata.Metrics) erro
 				for k := 0; k < metricSlice.Len(); k++ {
 					metric := metricSlice.At(k)
 
-					// check for valid type and temporality combination and for matching data field and type
-					if err := validateMetrics(metric); err != nil {
-						dropped++
+					// Check input before proceeding
+					validationStatus, err := validateMetric(metric);
+					if validationStatus == Drop {
+						dropped++;
+					}
+					if err != nil {
 						errs = multierr.Append(errs, consumererror.NewPermanent(err))
+						continue
+					}
+					if validationStatus != Ok {
 						continue
 					}
 

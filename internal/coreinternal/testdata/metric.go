@@ -270,7 +270,7 @@ func initDoubleSummaryMetric(sm pdata.Metric) {
 	quantile.SetValue(15)
 }
 
-func initMetric(m pdata.Metric, name string, ty pdata.MetricDataType) {
+func initMetric(m pdata.Metric, name string, ty pdata.MetricDataType) pdata.Metric {
 	m.SetName(name)
 	m.SetDescription("")
 	m.SetUnit("1")
@@ -284,6 +284,7 @@ func initMetric(m pdata.Metric, name string, ty pdata.MetricDataType) {
 		histo := m.Histogram()
 		histo.SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 	}
+  return m
 }
 
 func GenerateMetricsManyMetricsSameResource(metricsCount int) pdata.Metrics {
@@ -294,4 +295,8 @@ func GenerateMetricsManyMetricsSameResource(metricsCount int) pdata.Metrics {
 		initSumIntMetric(rs0ilm0.Metrics().AppendEmpty())
 	}
 	return md
+}
+
+func GenerateMetricTypeNone() pdata.Metric {
+	return initMetric(pdata.NewMetric(), "invalidTypeNone", pdata.MetricDataTypeNone)
 }

@@ -42,6 +42,13 @@ const (
 	keyStr      = "key"
 )
 
+type ValidationStatus int8
+const (
+	Ok ValidationStatus = iota // Valid data
+	Drop // Data is invalid; should be dropped
+	Skip // Short-circuit and skip without dropping
+)
+
 type bucketBoundsData struct {
 	sig   string
 	bound float64
@@ -61,36 +68,36 @@ func (a ByLabelName) Len() int           { return len(a) }
 func (a ByLabelName) Less(i, j int) bool { return a[i].Name < a[j].Name }
 func (a ByLabelName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
-// validateMetrics returns a bool representing whether the metric has a valid type and temporality combination and a
-// matching metric type and field
-func validateMetrics(metric pdata.Metric) error {
+// validateMetric returns a ValidationStatus indicating how the
+// caller should continue. If the input fails to validate, an error is included.
+func validateMetric(metric pdata.Metric) (ValidationStatus, error) {
 	switch metric.DataType() {
 	case pdata.MetricDataTypeGauge:
 		if metric.Gauge().DataPoints().Len() == 0 {
-			return errors.New("No data points for gauge")
+			return Skip, nil
 		}
 	case pdata.MetricDataTypeSum:
 		if metric.Sum().DataPoints().Len() == 0 {
-			return errors.New("No data points for sum")
+			return Skip, nil
 		}
 		if metric.Sum().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
-			return errors.New("Sum metric aggregation temporality is not cumulative")
+			return Drop, errors.New("Sum metric aggregation temporality is not cumulative")
 		}
 	case pdata.MetricDataTypeHistogram:
 		if metric.Histogram().DataPoints().Len() == 0 {
-			return errors.New("No datapoints for histogram")
+			return Skip, nil
 		}
 		if metric.Histogram().AggregationTemporality() != pdata.MetricAggregationTemporalityCumulative {
-			return errors.New("Histogram metric aggregation temporality is not cumulative")
+			return Drop, errors.New("Histogram metric aggregation temporality is not cumulative")
 		}
 	case pdata.MetricDataTypeSummary:
 		if metric.Summary().DataPoints().Len() == 0 {
-			return errors.New("No datapoints for metric summary")
+			return Skip, nil
 		}
 	default:
-		return errors.New("unsupported metric type")
+		return Drop, errors.New("unsupported metric type")
 	}
-	return nil
+	return Ok, nil
 }
 
 // addSample finds a TimeSeries in tsMap that corresponds to the label set labels, and add sample to the TimeSeries; it
